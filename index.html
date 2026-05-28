@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>芯片研发排期 — IPD 流程 & 关键路径</title>
+<style>
+:root {
+  --phase-concept: #7c3aed;
+  --phase-plan: #2563eb;
+  --phase-develop: #059669;
+  --phase-qualify: #d97706;
+  --phase-launch: #dc2626;
+  --critical: #e11d48;
+  --critical-bg: #fff1f2;
+  --bg: #f8fafc;
+  --card: #fff;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: -apple-system, "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.header {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  color: #fff;
+  padding: 16px 32px 20px;
+}
+.header h1 { font-size: 1.4rem; font-weight: 700; }
+.header .subtitle { font-size: .85rem; color: #94a3b8; margin-top: 4px; }
+
+/* ── Project bar ── */
+.proj-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.proj-bar select {
+  padding: 5px 10px;
+  border-radius: 5px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.1);
+  color: #fff;
+  font-size: .8rem;
+  min-width: 220px;
+  cursor: pointer;
+}
+.proj-bar select option { color: #1e293b; }
+.proj-bar button {
+  padding: 5px 12px;
+  border-radius: 5px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.1);
+  color: #fff;
+  font-size: .78rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.proj-bar button:hover { background: rgba(255,255,255,.2); }
+.proj-bar .start-date-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .75rem;
+  color: #94a3b8;
+  margin-left: auto;
+}
+.start-date-group input[type="date"] {
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.1);
+  color: #fff;
+  font-size: .75rem;
+  cursor: pointer;
+}
+.start-date-group input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+/* ── Metrics ── */
+.metrics {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.metric {
+  background: rgba(255,255,255,.1);
+  border-radius: 8px;
+  padding: 10px 16px;
+  text-align: center;
+  min-width: 80px;
+}
+.metric .val { font-size: 1.4rem; font-weight: 700; }
+.metric .lbl { font-size: .7rem; color: #94a3b8; margin-top: 2px; }
+.metric.critical-metric { background: rgba(225,29,72,.25); }
+.metric.critical-metric .val { color: #fda4af; }
+.metric.done-metric { background: rgba(5,150,105,.2); }
+.metric.done-metric .val { color: #6ee7b7; }
+.metric.prog-metric { background: rgba(217,119,6,.2); }
+.metric.prog-metric .val { color: #fcd34d; }
+
+/* ── Controls ── */
+.controls {
+  padding: 10px 32px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.controls label { font-size: .8rem; color: var(--text-muted); }
+.controls select, .controls button {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: .8rem;
+  background: var(--card);
+  cursor: pointer;
+}
+.controls button { font-weight: 600; }
+.controls button:hover { background: #f1f5f9; }
+.controls button.active { background: #1e293b; color: #fff; border-color: #1e293b; }
+#exportBtn { margin-left: auto; background: #059669; color: #fff; border-color: #059669; }
+#exportBtn:hover { background: #047857; }
+
+/* ── Gantt ── */
+.gantt-container {
+  padding: 16px 32px;
+  overflow-x: auto;
+}
+.gantt-inner {
+  min-width: 1200px;
+  display: flex;
+}
+.gantt-left {
+  flex-shrink: 0;
+  width: 360px;
+  border-right: 2px solid var(--border);
+}
+.gantt-left .row {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: .8rem;
+  border-bottom: 1px solid #f1f5f9;
+  white-space: nowrap;
+}
+.gantt-left .header-row {
+  height: 44px;
+  font-weight: 700;
+  font-size: .75rem;
+  color: var(--text-muted);
+  background: #f8fafc;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.gantt-left .phase-sep {
+  height: 28px;
+  font-weight: 700;
+  font-size: .75rem;
+  color: #fff;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  letter-spacing: .5px;
+}
+.gantt-left .task-name { font-weight: 500; }
+.gantt-left .task-team { font-size: .7rem; color: var(--text-muted); margin-left: auto; }
+
+.gantt-right {
+  flex: 1;
+  position: relative;
+}
+.gantt-right .row {
+  height: 36px;
+  position: relative;
+  border-bottom: 1px solid #f1f5f9;
+}
+.gantt-right .header-row {
+  height: 44px;
+  background: #f8fafc;
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.gantt-right .header-row .week-col {
+  flex: 1;
+  min-width: 28px;
+  text-align: center;
+  font-size: .65rem;
+  color: var(--text-muted);
+  border-right: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gantt-right .phase-sep { height: 28px; background: #f8fafc; }
+
+/* Dual-row header for date mode */
+.gantt-right .header-row.date-header { height: 52px; flex-direction: column; }
+.gantt-right .header-row.date-header .month-row {
+  display: flex;
+  width: 100%;
+  height: 20px;
+  font-size: .65rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.gantt-right .header-row.date-header .week-row {
+  display: flex;
+  width: 100%;
+  height: 32px;
+  font-size: .6rem;
+  color: var(--text-muted);
+}
+.header-row.date-header .month-col {
+  text-align: center;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.header-row.date-header .week-col-d {
+  text-align: center;
+  border-right: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.gantt-left .header-row.date-header { height: 52px; }
+
+/* ── Bars ── */
+.bar {
+  position: absolute;
+  height: 22px;
+  top: 7px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  font-size: .65rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: filter .15s, transform .15s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 4px;
+}
+.bar:hover { filter: brightness(1.15); transform: translateY(-1px); z-index: 10; }
+.bar.critical { box-shadow: 0 0 0 2px var(--critical), 0 2px 8px rgba(225,29,72,.3); }
+.bar.milestone { border-radius: 50%; width: 16px; height: 16px; top: 10px; padding: 0; }
+.bar.milestone::after {
+  content: "◆"; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%); font-size: 10px;
+}
+
+/* Status styles */
+.bar.status-not-started { opacity: 0.45; }
+.bar.status-completed { opacity: 1; }
+.bar.status-completed::after {
+  content: "✓"; position: absolute; right: 6px; top: 50%;
+  transform: translateY(-50%); font-size: 10px; color: #fff; font-weight: 700;
+}
+.bar.milestone.status-completed::after { content: "◆"; font-size: 10px; right: auto; }
+
+/* Phase colors */
+.phase-concept .bar { background: var(--phase-concept); }
+.phase-plan .bar { background: var(--phase-plan); }
+.phase-develop .bar { background: var(--phase-develop); }
+.phase-qualify .bar { background: var(--phase-qualify); }
+.phase-launch .bar { background: var(--phase-launch); }
+
+/* ── Dependency SVG ── */
+.dep-svg {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 5;
+}
+.dep-line { stroke: #cbd5e1; stroke-width: 1; fill: none; }
+.dep-line.critical-dep { stroke: var(--critical); stroke-width: 1.5; }
+
+/* ── Tooltip ── */
+.tooltip {
+  position: fixed;
+  background: #1e293b; color: #fff;
+  padding: 12px 16px; border-radius: 8px;
+  font-size: .8rem; pointer-events: none; z-index: 100;
+  max-width: 340px; box-shadow: 0 8px 24px rgba(0,0,0,.2);
+  display: none;
+}
+.tooltip .tt-name { font-weight: 700; font-size: .9rem; margin-bottom: 6px; }
+.tooltip .tt-row { display: flex; justify-content: space-between; gap: 16px; margin-top: 2px; }
+.tooltip .tt-label { color: #94a3b8; }
+.tooltip .tt-float { color: #fbbf24; }
+.tooltip .tt-critical { color: #fda4af; font-weight: 600; }
+.tooltip .tt-status { font-weight: 600; }
+.tooltip .tt-status.done { color: #6ee7b7; }
+.tooltip .tt-status.prog { color: #fcd34d; }
+.tooltip .tt-status.pending { color: #94a3b8; }
+
+/* ── Legend ── */
+.legend {
+  padding: 10px 32px;
+  display: flex; gap: 18px; flex-wrap: wrap; align-items: center;
+  font-size: .75rem; border-top: 1px solid var(--border);
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-swatch { width: 14px; height: 14px; border-radius: 3px; }
+.legend-critical { border: 2px solid var(--critical); width: 10px; height: 10px; border-radius: 2px; background: none; }
+.legend-prog { background: linear-gradient(to right, #888 50%, rgba(136,136,136,.4) 50%); width: 14px; height: 14px; border-radius: 3px; }
+
+/* ── Detail panel ── */
+.detail-panel {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px; margin: 12px 32px;
+  box-shadow: var(--shadow); display: none;
+}
+.detail-panel.show { display: block; }
+.detail-panel h3 { font-size: 1rem; margin-bottom: 8px; }
+.detail-panel .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; font-size: .8rem; }
+.detail-panel .detail-item .dl { color: var(--text-muted); font-size: .7rem; }
+.detail-panel .detail-item .dv { font-weight: 600; }
+.detail-panel .status-btns { display: flex; gap: 6px; margin-top: 10px; }
+.detail-panel .status-btns button {
+  padding: 4px 12px; border: 1px solid var(--border); border-radius: 4px;
+  background: #fff; cursor: pointer; font-size: .75rem;
+}
+.detail-panel .status-btns button.active-status { color: #fff; border-color: transparent; }
+.detail-panel .status-btns button.active-status.pending { background: #94a3b8; }
+.detail-panel .status-btns button.active-status.prog { background: #d97706; }
+.detail-panel .status-btns button.active-status.done { background: #059669; }
+
+/* ── Dialog ── */
+.dialog-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5);
+  z-index: 200; display: none; align-items: center; justify-content: center;
+}
+.dialog-overlay.show { display: flex; }
+.dialog-box {
+  background: #fff; border-radius: 12px; padding: 24px;
+  min-width: 420px; box-shadow: 0 16px 48px rgba(0,0,0,.2);
+}
+.dialog-box h3 { margin-bottom: 16px; font-size: 1.1rem; }
+.dialog-box input[type="text"] {
+  width: 100%; padding: 8px 12px; border: 1px solid var(--border);
+  border-radius: 6px; font-size: .9rem; margin-bottom: 12px;
+}
+.dialog-box .template-options { display: flex; gap: 8px; margin-bottom: 16px; }
+.dialog-box .template-options button {
+  flex: 1; padding: 8px; border: 2px solid var(--border);
+  border-radius: 6px; background: #fff; cursor: pointer; font-size: .8rem;
+}
+.dialog-box .template-options button.selected { border-color: #2563eb; background: #eff6ff; }
+.dialog-box .dialog-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.dialog-box .dialog-actions button {
+  padding: 7px 18px; border-radius: 6px; border: 1px solid var(--border);
+  background: #fff; cursor: pointer; font-size: .8rem;
+}
+.dialog-box .dialog-actions button.primary { background: #2563eb; color: #fff; border-color: #2563eb; }
+.dialog-box .dialog-actions button.danger { background: #dc2626; color: #fff; border-color: #dc2626; }
+
+/* ── Empty state ── */
+.empty-state {
+  text-align: center; padding: 60px 20px; color: var(--text-muted);
+}
+.empty-state .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+.empty-state p { font-size: .9rem; }
+
+/* ── Week grid ── */
+.grid-line {
+  position: absolute; top: 0; bottom: 0; width: 1px;
+  background: #f8fafc; z-index: 0;
+}
+
+@media (max-width: 768px) {
+  .header { padding: 12px 16px 16px; }
+  .header h1 { font-size: 1.1rem; }
+  .controls { padding: 8px 16px; }
+  .gantt-container { padding: 8px; }
+  .gantt-left { width: 220px; }
+  .metrics { gap: 6px; }
+  .metric { padding: 6px 10px; min-width: 55px; }
+  .metric .val { font-size: 1rem; }
+  .proj-bar { gap: 6px; }
+  .proj-bar select { min-width: 160px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="proj-bar">
+    <select id="projectSelector"></select>
+    <button id="newProjectBtn" onclick="showNewProjectDialog()">＋ 新建项目</button>
+    <div class="start-date-group">
+      <label for="startDateInput">项目启动日期：</label>
+      <input type="date" id="startDateInput" />
+    </div>
+  </div>
+  <div>
+    <h1 id="projectTitle">芯片研发排期</h1>
+    <div class="subtitle" id="projectSubtitle"></div>
+  </div>
+  <div class="metrics" id="metrics" style="margin-top:12px"></div>
+</div>
+
+<div class="controls">
+  <label>阶段筛选：</label>
+  <select id="phaseFilter">
+    <option value="all">全部阶段</option>
+    <option value="概念阶段">概念阶段</option>
+    <option value="计划阶段">计划阶段</option>
+    <option value="开发阶段">开发阶段</option>
+    <option value="验证阶段">验证阶段</option>
+    <option value="发布阶段">发布阶段</option>
+  </select>
+  <label>团队筛选：</label>
+  <select id="teamFilter">
+    <option value="all">全部团队</option>
+  </select>
+  <button id="cpToggle" class="active" onclick="toggleCriticalPath()">★ 关键路径</button>
+  <button onclick="zoomFit()">适应窗口</button>
+  <button onclick="resetView()">重置视图</button>
+  <button id="exportBtn" onclick="exportCSV()">导出 CSV</button>
+</div>
+
+<div class="gantt-container">
+  <div class="gantt-inner" id="ganttInner"></div>
+</div>
+
+<div class="detail-panel" id="detailPanel"></div>
+
+<div class="legend" id="legend"></div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<!-- New Project Dialog -->
+<div class="dialog-overlay" id="newProjectDialog">
+  <div class="dialog-box">
+    <h3>新建项目</h3>
+    <input type="text" id="newProjectName" placeholder="输入项目名称，如：NSOPA902x 隔离运放" />
+    <div class="template-options" id="templateOptions">
+      <button class="selected" data-template="from-template">从模板创建（含 36 个 IPD 任务）</button>
+      <button data-template="blank">空白项目</button>
+    </div>
+    <div class="dialog-actions">
+      <button onclick="closeNewProjectDialog()">取消</button>
+      <button class="primary" onclick="confirmCreateProject()">确认创建</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// SECTION 1: Constants
+// ============================================================
+const PHASE_COLORS = {
+  '概念阶段': 'var(--phase-concept)',
+  '计划阶段': 'var(--phase-plan)',
+  '开发阶段': 'var(--phase-develop)',
+  '验证阶段': 'var(--phase-qualify)',
+  '发布阶段': 'var(--phase-launch)',
+};
+
+const TEAMS = [
+  '市场部', '系统架构', '电路设计', '版图设计', '仿真验证',
+  '测试工程', '质量/可靠性', '工艺工程', '运营/供应链', '应用工程', '项目管理'
+];
+
+const PHASES = ['概念阶段','计划阶段','开发阶段','验证阶段','发布阶段'];
+
+// Hardcoded template — immutable reference for new projects and migration
+const TEMPLATE_TASKS = [
+  // ── 概念阶段 ──
+  { id:'T1',  name:'市场调研与竞品分析',        phase:'概念阶段', team:'市场部',     dur:3, deps:[],        info:'对标 ADI/TI/Renesas 同等级运放，输出市场规模和竞品参数对比报告' },
+  { id:'T2',  name:'技术可行性评估',            phase:'概念阶段', team:'系统架构',   dur:2, deps:['T1'],    info:'评估 0.18μm BCD 工艺可行性，噪声密度 < 8nV/√Hz 指标可达性' },
+  { id:'T3',  name:'产品初步规格定义',          phase:'概念阶段', team:'系统架构',   dur:2, deps:['T2'],    info:'输出 PRD 草案：带宽 10MHz、失调电压 < 50μV、AEC-Q100 Grade 1' },
+  { id:'T4',  name:'商业论证与项目章程',         phase:'概念阶段', team:'项目管理',   dur:2, deps:['T1','T2'], info:'NPV/ROI 分析，目标市场规模 ¥2.5 亿/年，项目立项批准' },
+  // ── 计划阶段 ──
+  { id:'T5',  name:'详细产品需求文档',          phase:'计划阶段', team:'系统架构',   dur:3, deps:['T3','T4'], info:'完整 PRD，含电特性表、封装要求 SOT23-5/MSOP-8，工作温度 -40~125°C' },
+  { id:'T6',  name:'系统架构设计',             phase:'计划阶段', team:'系统架构',   dur:4, deps:['T5'],    info:'两级运放架构：折叠 cascode 输入级 + Class AB 输出级，内置 EMI 滤波' },
+  { id:'T7',  name:'IP 核选型与评估',          phase:'计划阶段', team:'电路设计',   dur:3, deps:['T6'],    info:'评估现有 BCD 工艺 PDK 中 BJT/MOS/电阻/电容器件模型精度' },
+  { id:'T8',  name:'工艺节点与封装选型',         phase:'计划阶段', team:'工艺工程',   dur:2, deps:['T6'],    info:'选定 0.18μm BCD 工艺，SOT23-5/MSOP-8 双封装方案' },
+  { id:'T9',  name:'项目计划与资源分配',         phase:'计划阶段', team:'项目管理',   dur:2, deps:['T5'],    info:'组建 15 人项目团队，分配设计/版图/测试资源，制定里程碑' },
+  { id:'T10', name:'DFMEA 初步风险评估',        phase:'计划阶段', team:'质量/可靠性', dur:3, deps:['T5','T6'], info:'识别关键失效模式：输入过压、ESD、闩锁效应，初始 RPN 评分' },
+  { id:'T11', name:'DR0 — 概念设计评审',        phase:'计划阶段', team:'项目管理',   dur:1, deps:['T7','T8','T9','T10'], info:'里程碑评审：确认架构/工艺/封装方案，批准进入详细设计阶段', milestone:true },
+  // ── 开发阶段 ──
+  { id:'T12', name:'核心运放电路设计',          phase:'开发阶段', team:'电路设计',   dur:6, deps:['T11'],   info:'折叠 cascode 输入级 + Class AB 输出级晶体管级设计，PVT 角仿真' },
+  { id:'T13', name:'偏置电路与基准源设计',       phase:'开发阶段', team:'电路设计',   dur:4, deps:['T11'],   info:'PTAT 电流源 + 带隙基准，温漂 < 10ppm/°C，PSRR > 80dB' },
+  { id:'T14', name:'ESD 保护与输入钳位设计',    phase:'开发阶段', team:'电路设计',   dur:3, deps:['T11'],   info:'HBM 4kV / CDM 1kV ESD 保护网络，输入共模超出电源轨钳位' },
+  { id:'T15', name:'全电路前仿真验证',          phase:'开发阶段', team:'仿真验证',   dur:4, deps:['T12','T13','T14'], info:'PVT 全角仿真 + Monte Carlo 失配分析，验证所有电特性指标' },
+  { id:'T16', name:'版图设计',               phase:'开发阶段', team:'版图设计',   dur:6, deps:['T15'],   info:'全差分对称版图，输入对管共质心布局，dummy 器件匹配' },
+  { id:'T17', name:'后仿真验证（含寄生）',       phase:'开发阶段', team:'仿真验证',   dur:4, deps:['T16'],   info:'R+C+CC 寄生提取后仿真，验证带宽/相位裕度/PSRR 退化量' },
+  { id:'T18', name:'DRC/LVS/ANT 物理验证',     phase:'开发阶段', team:'版图设计',   dur:2, deps:['T16'],   info:'设计规则检查、版图原理图一致性、天线效应检查，零违规通过' },
+  { id:'T19', name:'DR1 — 设计完成评审',        phase:'开发阶段', team:'项目管理',   dur:1, deps:['T17','T18'], info:'里程碑评审：确认设计满足所有规格，批准 Tape-out', milestone:true },
+  { id:'T20', name:'设计冻结与 Tape-out 准备',  phase:'开发阶段', team:'电路设计',   dur:2, deps:['T19'],   info:'GDSII 数据导出、JDV 确认、掩模订单提交至 Foundry' },
+  // ── 验证阶段 ──
+  { id:'T21', name:'掩模制作与晶圆流片',         phase:'验证阶段', team:'运营/供应链', dur:8, deps:['T20'],   info:'Foundry 掩模制作（~4w）+ 晶圆加工（~4w），MPW 或工程批投片' },
+  { id:'T22', name:'CP 测试程序开发',          phase:'验证阶段', team:'测试工程',   dur:4, deps:['T20'],   info:'开发晶圆级探针测试程序，覆盖 DC 参数、AC 参数、trimming 算法' },
+  { id:'T23', name:'CP 测试（晶圆级）',         phase:'验证阶段', team:'测试工程',   dur:3, deps:['T21','T22'], info:'晶圆针测，筛选功能/参数不良 die，生成 wafer map' },
+  { id:'T24', name:'FT 测试程序与硬件开发',      phase:'验证阶段', team:'测试工程',   dur:3, deps:['T21','T22'], info:'封装后自动测试程序 + 测试板设计，覆盖全温范围' },
+  { id:'T25', name:'FT 测试（封装后）',         phase:'验证阶段', team:'测试工程',   dur:3, deps:['T23','T24'], info:'封装样品全参数测试，-40/25/125°C 三温测试' },
+  { id:'T26', name:'AEC-Q100 可靠性验证',       phase:'验证阶段', team:'质量/可靠性', dur:10, deps:['T23'],   info:'HTOL 1000h / HAST 96h / TC 1000cyc / HBM/CDM ESD / LTOL，Grade 1 全套' },
+  { id:'T27', name:'芯片特性化测试',            phase:'验证阶段', team:'测试工程',   dur:4, deps:['T25'],   info:'全温全电压特性扫描，建立数据手册曲线（GBW/THD+N/噪声密度 vs 频率/温度）' },
+  { id:'T28', name:'ESD/Latch-up 专项测试',    phase:'验证阶段', team:'质量/可靠性', dur:2, deps:['T25'],   info:'HBM/CDM ESD 等级确认 + Latch-up 触发电流测试，JEDEC 标准' },
+  { id:'T29', name:'DR2 — 验证完成评审',        phase:'验证阶段', team:'项目管理',   dur:1, deps:['T26','T27','T28'], info:'里程碑评审：确认所有可靠性/特性化测试通过，批准进入量产阶段', milestone:true },
+  // ── 发布阶段 ──
+  { id:'T30', name:'工程样片制作与交付',         phase:'发布阶段', team:'运营/供应链', dur:3, deps:['T29'],   info:'小批量封装生产（~500pcs），编带包装，样片出货' },
+  { id:'T31', name:'客户样片送样与支持',         phase:'发布阶段', team:'应用工程',   dur:2, deps:['T30'],   info:'向 3-5 家 Tier1 客户送样，提供 EVM 评估板和参考设计' },
+  { id:'T32', name:'客户验证与设计导入',         phase:'发布阶段', team:'应用工程',   dur:5, deps:['T31'],   info:'客户完成板级验证、系统标定、EMC 测试，进入 BOM 认证流程' },
+  { id:'T33', name:'量产爬坡',               phase:'发布阶段', team:'运营/供应链', dur:4, deps:['T30'],   info:'封装产能提升至 1M pcs/月，CP/FT 测试产能同步扩产' },
+  { id:'T34', name:'良率提升与工艺优化',         phase:'发布阶段', team:'工艺工程',   dur:6, deps:['T33'],   info:'目标 CP 良率 > 95%，FT 良率 > 98%，持续监控关键参数 Cpk' },
+  { id:'T35', name:'产品文档与数据手册发布',      phase:'发布阶段', team:'项目管理',   dur:2, deps:['T29'],   info:'正式版 Datasheet、应用笔记、可靠性报告、PPAP 文档包' },
+  { id:'T36', name:'DR3 — 量产发布会',         phase:'发布阶段', team:'项目管理',   dur:1, deps:['T32','T34','T35'], info:'最终里程碑：产品正式进入量产目录，销售团队启动推广', milestone:true },
+];
+
+// ============================================================
+// SECTION 2: Data Management
+// ============================================================
+const STORAGE_KEY = 'chip_schedule_projects';
+const DATA_VERSION = 2;
+
+let projectsData = null;   // { version, activeProjectId, projects: { [id]: {...} } }
+let activeProject = null;  // reference to current project object
+
+function initDataStore() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) {
+    try {
+      projectsData = JSON.parse(raw);
+      if (projectsData.version >= DATA_VERSION) {
+        activeProject = projectsData.projects[projectsData.activeProjectId];
+        if (activeProject) return;
+      }
+    } catch (e) { /* corrupted data — re-migrate */ }
+  }
+
+  // First load or migration: create default project from template
+  const defaultId = 'proj_default';
+  projectsData = {
+    version: DATA_VERSION,
+    activeProjectId: defaultId,
+    projects: {}
+  };
+  projectsData.projects[defaultId] = buildProject(
+    defaultId,
+    'NSOPA901x 高精度运放',
+    '纳芯微电子 · 传感器信号链 · AEC-Q100 Grade 1 · 基于 CPM 关键路径法',
+    TEMPLATE_TASKS.map(t => ({ ...t, status: 'not-started' }))
+  );
+  activeProject = projectsData.projects[defaultId];
+  saveProjects();
+}
+
+function buildProject(id, name, subtitle, tasks) {
+  const now = new Date().toISOString().slice(0, 10);
+  return { id, name, subtitle, startDate: null, createdAt: now, updatedAt: now, tasks };
+}
+
+function saveProjects() {
+  if (activeProject) activeProject.updatedAt = new Date().toISOString().slice(0, 10);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(projectsData));
+}
+
+function switchProject(projectId) {
+  projectsData.activeProjectId = projectId;
+  activeProject = projectsData.projects[projectId];
+  saveProjects();
+  render();
+}
+
+function createProject(name, fromTemplate) {
+  const id = 'proj_' + Date.now();
+  const tasks = fromTemplate
+    ? TEMPLATE_TASKS.map(t => ({ ...t, status: 'not-started' }))
+    : [];
+  projectsData.projects[id] = buildProject(id, name, '', tasks);
+  switchProject(id);
+}
+
+function updateTaskStatus(taskId, newStatus) {
+  const task = activeProject.tasks.find(t => t.id === taskId);
+  if (task) {
+    task.status = newStatus;
+    saveProjects();
+    render();
+  }
+}
+
+function updateProjectStartDate(dateStr) {
+  activeProject.startDate = dateStr || null;
+  saveProjects();
+  render();
+}
+
+// ============================================================
+// SECTION 3: Date Utilities
+// ============================================================
+function getWeekStartDate(weekNum) {
+  if (!activeProject || !activeProject.startDate) return null;
+  // Parse start date, find the Monday of that week as week 0 anchor
+  const base = new Date(activeProject.startDate + 'T00:00:00');
+  const baseDay = base.getDay();
+  const baseDiff = baseDay === 0 ? -6 : 1 - baseDay;
+  base.setDate(base.getDate() + baseDiff);
+  // Add week offset
+  base.setDate(base.getDate() + weekNum * 7);
+  return base;
+}
+
+function fmtDate(d) {
+  return (d.getMonth() + 1) + '/' + d.getDate();
+}
+
+function formatDateRange(weekNum) {
+  const mon = getWeekStartDate(weekNum);
+  if (!mon) return '';
+  const sun = new Date(mon);
+  sun.setDate(sun.getDate() + 6);
+  return fmtDate(mon) + ' ~ ' + fmtDate(sun);
+}
+
+function buildGanttDateHeaders(totalWeeks, weekW) {
+  if (!activeProject || !activeProject.startDate) {
+    // Fallback: week numbers only (original behavior)
+    let html = '';
+    for (let w = 0; w < totalWeeks; w++) {
+      html += `<div class="week-col" style="min-width:${weekW}px">${w}</div>`;
+    }
+    return { html, isDateMode: false };
+  }
+
+  // Date mode: build month row + week row
+  let monthHtml = '';
+  let weekHtml = '';
+  let currentMonth = -1;
+  let monthStartCol = 0;
+  let monthSpanCount = 0;
+
+  // Pre-scan to build month spans
+  const weekMonths = [];
+  for (let w = 0; w < totalWeeks; w++) {
+    const d = getWeekStartDate(w);
+    weekMonths.push(d ? d.getMonth() : 0);
+  }
+
+  // Build week row and accumulate month spans
+  const monthSpans = []; // { month, startCol, span }
+  for (let w = 0; w < totalWeeks; w++) {
+    const m = weekMonths[w];
+    const d = getWeekStartDate(w);
+    const dateLabel = d ? fmtDate(d) : '';
+
+    weekHtml += `<div class="week-col-d" style="min-width:${weekW}px"><span>W${w}</span><span>${dateLabel}</span></div>`;
+
+    if (m !== currentMonth) {
+      if (currentMonth >= 0) {
+        monthSpans.push({ month: currentMonth, startCol: monthStartCol, span: monthSpanCount });
+      }
+      currentMonth = m;
+      monthStartCol = w;
+      monthSpanCount = 0;
+    }
+    monthSpanCount++;
+  }
+  // Last month
+  if (currentMonth >= 0) {
+    monthSpans.push({ month: currentMonth, startCol: monthStartCol, span: monthSpanCount });
+  }
+
+  for (const ms of monthSpans) {
+    const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+    monthHtml += `<div class="month-col" style="min-width:${ms.span * weekW}px">${monthNames[ms.month]}</div>`;
+  }
+
+  const html = `<div class="header-row date-header">
+    <div class="month-row">${monthHtml}</div>
+    <div class="week-row">${weekHtml}</div>
+  </div>`;
+  return { html, isDateMode: true };
+}
+
+// ============================================================
+// SECTION 4: CPM Algorithm
+// ============================================================
+function runCPM(tasks) {
+  if (!tasks || tasks.length === 0) return { map: {}, projectEnd: 0, sorted: [] };
+
+  const map = {};
+  tasks.forEach(t => {
+    map[t.id] = { ...t, es:0, ef:0, ls:0, lf:0, float:0, critical:false };
+  });
+
+  // Forward pass
+  const sorted = topologicalSort(map);
+  sorted.forEach(id => {
+    const t = map[id];
+    if (t.deps.length === 0) {
+      t.es = 0;
+    } else {
+      t.es = Math.max(...t.deps.map(d => {
+        const dep = map[d];
+        return dep ? dep.ef : 0;
+      }));
+    }
+    t.ef = t.es + t.dur;
+  });
+
+  // Backward pass
+  const projectEnd = Math.max(...Object.values(map).map(t => t.ef));
+  const reversed = [...sorted].reverse();
+  reversed.forEach(id => {
+    const t = map[id];
+    const succs = Object.values(map).filter(s => s.deps.includes(id));
+    if (succs.length === 0) {
+      t.lf = projectEnd;
+    } else {
+      t.lf = Math.min(...succs.map(s => s.ls));
+    }
+    t.ls = t.lf - t.dur;
+    t.float = t.ls - t.es;
+    t.critical = t.float < 0.01;
+  });
+
+  return { map, projectEnd, sorted };
+}
+
+function topologicalSort(map) {
+  const visited = new Set();
+  const result = [];
+  function visit(id) {
+    if (visited.has(id)) return;
+    visited.add(id);
+    const node = map[id];
+    if (node && node.deps) node.deps.forEach(d => visit(d));
+    result.push(id);
+  }
+  Object.keys(map).forEach(id => visit(id));
+  return result;
+}
+
+// ============================================================
+// SECTION 5: Rendering
+// ============================================================
+let tmap = {};
+let projectEnd = 0;
+let criticalTasks = [];
+let showCriticalPath = true;
+let phaseFilter = 'all';
+let teamFilter = 'all';
+let selectedTemplate = 'from-template';
+
+function refreshCPM() {
+  if (!activeProject || activeProject.tasks.length === 0) {
+    tmap = {};
+    projectEnd = 0;
+    criticalTasks = [];
+    return;
+  }
+  const result = runCPM(activeProject.tasks);
+  tmap = result.map;
+  projectEnd = result.projectEnd;
+  criticalTasks = Object.values(tmap).filter(t => t.critical);
+}
+
+function getFilteredTasks() {
+  let tasks = Object.values(tmap);
+  if (phaseFilter !== 'all') tasks = tasks.filter(t => t.phase === phaseFilter);
+  if (teamFilter !== 'all') tasks = tasks.filter(t => t.team === teamFilter);
+  return tasks;
+}
+
+function render() {
+  refreshCPM();
+  renderProjectSelector();
+  renderHeader();
+  renderMetrics();
+  renderGantt();
+  renderLegend();
+}
+
+function renderProjectSelector() {
+  const sel = document.getElementById('projectSelector');
+  sel.innerHTML = '';
+  Object.values(projectsData.projects).forEach(p => {
+    const o = document.createElement('option');
+    o.value = p.id;
+    o.textContent = p.name + (p.tasks.length ? ` (${p.tasks.length} 任务)` : '');
+    sel.appendChild(o);
+  });
+  sel.value = activeProject ? activeProject.id : '';
+}
+
+function renderHeader() {
+  document.getElementById('projectTitle').textContent = activeProject ? activeProject.name : '芯片研发排期';
+  document.getElementById('projectSubtitle').textContent = activeProject ? activeProject.subtitle : '';
+  document.title = (activeProject ? activeProject.name : '芯片研发排期') + ' — IPD 流程 & 关键路径';
+
+  const dateInput = document.getElementById('startDateInput');
+  dateInput.value = (activeProject && activeProject.startDate) ? activeProject.startDate : '';
+}
+
+function renderMetrics() {
+  if (!activeProject || activeProject.tasks.length === 0) {
+    document.getElementById('metrics').innerHTML = '<div class="metric"><div class="val">—</div><div class="lbl">暂无数据</div></div>';
+    return;
+  }
+  const tasks = activeProject.tasks;
+  const done = tasks.filter(t => t.status === 'completed').length;
+  const prog = tasks.filter(t => t.status === 'in-progress').length;
+  document.getElementById('metrics').innerHTML = `
+    <div class="metric">
+      <div class="val">${tasks.length}</div>
+      <div class="lbl">总任务数</div>
+    </div>
+    <div class="metric done-metric">
+      <div class="val">${done}</div>
+      <div class="lbl">已完成</div>
+    </div>
+    <div class="metric prog-metric">
+      <div class="val">${prog}</div>
+      <div class="lbl">进行中</div>
+    </div>
+    <div class="metric">
+      <div class="val">${projectEnd}</div>
+      <div class="lbl">总工期（周）</div>
+    </div>
+    <div class="metric critical-metric">
+      <div class="val">${criticalTasks.length}</div>
+      <div class="lbl">关键路径任务</div>
+    </div>
+    <div class="metric">
+      <div class="val">${Math.round(projectEnd / 4.33)}</div>
+      <div class="lbl">约合月数</div>
+    </div>
+  `;
+}
+
+function renderGantt() {
+  if (!activeProject || activeProject.tasks.length === 0) {
+    document.getElementById('ganttInner').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>项目暂无任务</p>
+        <p style="font-size:.75rem;margin-top:4px">新建项目时选择「从模板创建」可自动填充 36 个 IPD 任务</p>
+      </div>`;
+    document.getElementById('detailPanel').className = 'detail-panel';
+    return;
+  }
+
+  const colsPerWeek = 1;
+  const weekW = 30;
+  const totalCols = projectEnd;
+  const allTasks = Object.values(tmap);
+  const filteredIds = new Set(getFilteredTasks().map(t => t.id));
+
+  // Group by phase
+  const phaseRows = [];
+  PHASES.forEach(phase => {
+    const tasks = allTasks.filter(t => t.phase === phase);
+    if (tasks.length === 0) return;
+    phaseRows.push({ type:'phase', phase, label:phase });
+    tasks.forEach((t, i) => {
+      phaseRows.push({ type:'task', task:t, isLast:(i === tasks.length - 1) });
+    });
+  });
+
+  const dateHeader = buildGanttDateHeaders(totalCols, weekW);
+
+  let leftHtml = '';
+  let rightHtml = '';
+
+  // Left header
+  if (dateHeader.isDateMode) {
+    leftHtml += `<div class="row header-row date-header"><span>任务名称</span><span style="margin-left:auto">团队 / 工期</span></div>`;
+  } else {
+    leftHtml += `<div class="row header-row"><span>任务名称</span><span style="margin-left:auto">团队 / 工期</span></div>`;
+  }
+
+  // Right header
+  rightHtml += dateHeader.html;
+
+  // Rows
+  phaseRows.forEach((row, idx) => {
+    const filtered = row.type === 'task' ? !filteredIds.has(row.task.id) : false;
+    const display = filtered ? 'none' : '';
+
+    if (row.type === 'phase') {
+      leftHtml += `<div class="row phase-sep" style="background:${PHASE_COLORS[row.phase]};display:${filtered ? 'none':'flex'}">${row.label}</div>`;
+      rightHtml += `<div class="row phase-sep" style="display:${filtered ? 'none':'block'}"></div>`;
+    } else {
+      const t = row.task;
+      const critical = t.critical && showCriticalPath;
+      const statusClass = 'status-' + (t.status || 'not-started');
+
+      leftHtml += `
+        <div class="row" style="display:${display === '' ? 'flex' : display}">
+          <span class="task-name" style="color:${critical ? 'var(--critical)' : 'inherit'}">${critical ? '◆ ' : ''}${t.name}</span>
+          <span class="task-team">${t.team} · ${t.dur}w</span>
+        </div>`;
+
+      const leftPx = t.es * weekW;
+      const widthPx = t.dur * weekW - 2;
+
+      // Build bar style with status-aware background
+      let barBg = PHASE_COLORS[t.phase];
+      if (t.status === 'in-progress') {
+        const phaseHex = phaseVarToHex(PHASE_COLORS[t.phase]);
+        barBg = `linear-gradient(to right, ${phaseHex} 50%, ${phaseHex}66 50%)`;
+      }
+
+      if (t.milestone) {
+        rightHtml += `
+          <div class="row" style="display:${display}">
+            <div class="bar milestone ${critical ? 'critical' : ''} ${statusClass}"
+                 style="left:${leftPx + widthPx/2 - 8}px; background:${PHASE_COLORS[t.phase]}; cursor:pointer;"
+                 data-id="${t.id}"
+                 onclick="showDetail('${t.id}')"
+                 onmouseenter="showTooltip(event, '${t.id}')"
+                 onmouseleave="hideTooltip()"></div>
+          </div>`;
+      } else {
+        rightHtml += `
+          <div class="row" style="display:${display}">
+            <div class="bar ${critical ? 'critical' : ''} ${statusClass}"
+                 style="left:${leftPx}px; width:${Math.max(widthPx, 14)}px; background:${barBg}"
+                 data-id="${t.id}"
+                 onclick="showDetail('${t.id}')"
+                 onmouseenter="showTooltip(event, '${t.id}')"
+                 onmouseleave="hideTooltip()">${t.dur < 2 ? '' : t.name}</div>
+          </div>`;
+      }
+    }
+  });
+
+  // SVG dependency lines
+  let svgHtml = '';
+  if (showCriticalPath) {
+    const totalHeight = countRowOffset(phaseRows, phaseRows.length);
+    svgHtml = `<svg class="dep-svg" style="height:${totalHeight}px">`;
+    allTasks.forEach(t => {
+      t.deps.forEach(depId => {
+        if (!filteredIds.has(t.id) || !filteredIds.has(depId)) return;
+        const from = tmap[depId];
+        if (!from) return;
+        const fromIdx = phaseRows.findIndex(r => r.type === 'task' && r.task.id === depId);
+        const toIdx = phaseRows.findIndex(r => r.type === 'task' && r.task.id === t.id);
+        if (fromIdx < 0 || toIdx < 0) return;
+
+        const fromRowY = countRowOffset(phaseRows, fromIdx);
+        const toRowY = countRowOffset(phaseRows, toIdx);
+        const fromBarEnd = (from.es + from.dur) * weekW;
+        const toBarStart = t.es * weekW;
+        const y1 = fromRowY + 18;
+        const y2 = toRowY + 18;
+
+        const crit = from.critical && t.critical;
+        svgHtml += `<path d="M${fromBarEnd} ${y1} C${fromBarEnd + 8} ${y1}, ${toBarStart - 8} ${y2}, ${toBarStart} ${y2}"
+                         class="dep-line ${crit ? 'critical-dep' : ''}" />`;
+      });
+    });
+    svgHtml += '</svg>';
+  }
+
+  function countRowOffset(rows, idx) {
+    let h = 0;
+    for (let i = 0; i < idx; i++) {
+      h += rows[i].type === 'phase' ? 28 : 36;
+    }
+    // Add header height
+    const isDateMode = dateHeader.isDateMode;
+    return h + (isDateMode ? 52 : 44);
+  }
+
+  const rightWidth = totalCols * weekW;
+  document.getElementById('ganttInner').innerHTML = `
+    <div class="gantt-left">${leftHtml}</div>
+    <div class="gantt-right" style="width:${Math.max(rightWidth, 600)}px; position:relative">
+      ${rightHtml}
+      ${svgHtml}
+    </div>`;
+}
+
+// Map CSS var() phase colors to hex for gradient construction
+function phaseVarToHex(varStr) {
+  const map = {
+    'var(--phase-concept)': '#7c3aed',
+    'var(--phase-plan)':    '#2563eb',
+    'var(--phase-develop)': '#059669',
+    'var(--phase-qualify)': '#d97706',
+    'var(--phase-launch)':  '#dc2626',
+  };
+  return map[varStr] || '#64748b';
+}
+
+function renderLegend() {
+  let html = '<span style="font-weight:600">阶段：</span>';
+  Object.entries(PHASE_COLORS).forEach(([phase, color]) => {
+    html += `<span class="legend-item"><span class="legend-swatch" style="background:${color}"></span>${phase}</span>`;
+  });
+  html += '<span style="margin-left:12px;font-weight:600">标记：</span>';
+  html += '<span class="legend-item"><span class="legend-critical"></span>关键路径</span>';
+  html += '<span class="legend-item">◆ 里程碑</span>';
+  html += '<span style="margin-left:12px;font-weight:600">进度：</span>';
+  html += '<span class="legend-item"><span class="legend-swatch" style="opacity:0.45;background:#94a3b8"></span>未开始</span>';
+  html += '<span class="legend-item"><span class="legend-prog"></span>进行中</span>';
+  html += '<span class="legend-item"><span class="legend-swatch" style="background:#059669;position:relative">✓</span>已完成</span>';
+  document.getElementById('legend').innerHTML = html;
+}
+
+// ============================================================
+// SECTION 6: Interaction
+// ============================================================
+function showTooltip(e, id) {
+  const t = tmap[id];
+  if (!t) return;
+  const tt = document.getElementById('tooltip');
+  const pathLabel = t.critical ? '<span class="tt-critical">★ 关键路径</span>' :
+    `<span class="tt-float">浮动: ${t.float} 周</span>`;
+
+  let statusHtml = '';
+  if (t.status === 'completed') statusHtml = '<span class="tt-status done">已完成</span>';
+  else if (t.status === 'in-progress') statusHtml = '<span class="tt-status prog">进行中</span>';
+  else statusHtml = '<span class="tt-status pending">未开始</span>';
+
+  let dateRangeHtml = '';
+  if (activeProject && activeProject.startDate) {
+    dateRangeHtml = `<div class="tt-row"><span class="tt-label">实际日期</span><span>${formatDateRange(t.es)} → ${formatDateRange(t.ef - 1)}</span></div>`;
+  }
+
+  tt.innerHTML = `
+    <div class="tt-name">${t.name}</div>
+    <div class="tt-row"><span class="tt-label">阶段</span><span>${t.phase}</span></div>
+    <div class="tt-row"><span class="tt-label">团队</span><span>${t.team}</span></div>
+    <div class="tt-row"><span class="tt-label">工期</span><span>${t.dur} 周</span></div>
+    <div class="tt-row"><span class="tt-label">起止</span><span>W${t.es} → W${t.ef}</span></div>
+    <div class="tt-row"><span class="tt-label">最早</span><span>ES=${t.es}, EF=${t.ef}</span></div>
+    <div class="tt-row"><span class="tt-label">最晚</span><span>LS=${t.ls}, LF=${t.lf}</span></div>
+    <div class="tt-row">${pathLabel}</div>
+    ${dateRangeHtml}
+    <div class="tt-row"><span class="tt-label">状态</span>${statusHtml}</div>
+  `;
+  tt.style.display = 'block';
+  tt.style.left = (e.clientX + 12) + 'px';
+  tt.style.top = (e.clientY - 10) + 'px';
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').style.display = 'none';
+}
+
+function showDetail(id) {
+  const t = tmap[id];
+  if (!t) return;
+  const panel = document.getElementById('detailPanel');
+  const depsNames = t.deps.map(d => tmap[d] ? tmap[d].name : d).join('、') || '无';
+  const succNames = Object.values(tmap).filter(s => s.deps.includes(id)).map(s => s.name).join('、') || '无';
+
+  let dateInfoHtml = '';
+  if (activeProject && activeProject.startDate) {
+    dateInfoHtml = `
+      <div class="detail-item"><div class="dl">实际开始日期</div><div class="dv">${formatDateRange(t.es)}</div></div>
+      <div class="detail-item"><div class="dl">实际完成日期</div><div class="dv">${formatDateRange(t.ef - 1)}</div></div>`;
+  }
+
+  const st = t.status || 'not-started';
+  panel.className = 'detail-panel show';
+  panel.innerHTML = `
+    <h3>${t.critical ? '◆ ' : ''}${t.name}</h3>
+    <div class="detail-grid">
+      <div class="detail-item"><div class="dl">阶段</div><div class="dv">${t.phase}</div></div>
+      <div class="detail-item"><div class="dl">负责团队</div><div class="dv">${t.team}</div></div>
+      <div class="detail-item"><div class="dl">工期</div><div class="dv">${t.dur} 周</div></div>
+      <div class="detail-item"><div class="dl">起始时间</div><div class="dv">第 ${t.es} 周 → 第 ${t.ef} 周</div></div>
+      <div class="detail-item"><div class="dl">最早开始/完成</div><div class="dv">ES=${t.es} / EF=${t.ef}</div></div>
+      <div class="detail-item"><div class="dl">最晚开始/完成</div><div class="dv">LS=${t.ls} / LF=${t.lf}</div></div>
+      <div class="detail-item"><div class="dl">浮动时间</div><div class="dv" style="color:${t.critical ? 'var(--critical)' : 'inherit'}">${t.critical ? '0（关键路径）' : t.float + ' 周'}</div></div>
+      <div class="detail-item"><div class="dl">前置任务</div><div class="dv">${depsNames}</div></div>
+      <div class="detail-item"><div class="dl">后置任务</div><div class="dv">${succNames}</div></div>
+      ${dateInfoHtml}
+    </div>
+    <p style="margin-top:8px;font-size:.8rem;color:var(--text-muted)">${t.info || ''}</p>
+    <div class="status-btns">
+      <span style="font-size:.78rem;color:var(--text-muted);margin-right:4px;line-height:28px">状态：</span>
+      <button class="${st === 'not-started' ? 'active-status pending' : ''}" onclick="updateTaskStatus('${t.id}','not-started')">未开始</button>
+      <button class="${st === 'in-progress' ? 'active-status prog' : ''}" onclick="updateTaskStatus('${t.id}','in-progress')">进行中</button>
+      <button class="${st === 'completed' ? 'active-status done' : ''}" onclick="updateTaskStatus('${t.id}','completed')">已完成</button>
+    </div>
+  `;
+  panel.scrollIntoView({ behavior:'smooth' });
+}
+
+function toggleCriticalPath() {
+  showCriticalPath = !showCriticalPath;
+  document.getElementById('cpToggle').classList.toggle('active', showCriticalPath);
+  renderGantt();
+}
+
+function zoomFit() {
+  renderGantt();
+}
+
+function resetView() {
+  showCriticalPath = true;
+  document.getElementById('cpToggle').classList.add('active');
+  document.getElementById('phaseFilter').value = 'all';
+  document.getElementById('teamFilter').value = 'all';
+  phaseFilter = 'all';
+  teamFilter = 'all';
+  render();
+}
+
+// ============================================================
+// SECTION 7: CSV Export
+// ============================================================
+function exportCSV() {
+  if (!activeProject || activeProject.tasks.length === 0) {
+    alert('当前项目没有任务数据');
+    return;
+  }
+
+  const headers = ['ID','任务名称','阶段','团队','工期(周)','开始周','结束周','ES','EF','LS','LF','浮动','关键路径','状态','前置任务','备注'];
+  const statusLabels = { 'not-started': '未开始', 'in-progress': '进行中', 'completed': '已完成' };
+
+  const cpmResult = runCPM(activeProject.tasks);
+  const map = cpmResult.map;
+
+  function esc(v) {
+    const s = String(v == null ? '' : v);
+    if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+      return '"' + s.replace(/"/g, '""') + '"';
+    }
+    return s;
+  }
+
+  const lines = [headers.join(',')];
+  activeProject.tasks.forEach(t => {
+    const m = map[t.id] || {};
+    const depsStr = (t.deps || []).join(';');
+    lines.push([
+      esc(t.id),
+      esc(t.name),
+      esc(t.phase),
+      esc(t.team),
+      t.dur,
+      m.es != null ? m.es : '',
+      m.ef != null ? m.ef : '',
+      m.es != null ? m.es : '',
+      m.ef != null ? m.ef : '',
+      m.ls != null ? m.ls : '',
+      m.lf != null ? m.lf : '',
+      m.float != null ? m.float : '',
+      m.critical ? '是' : '否',
+      esc(statusLabels[t.status] || '未开始'),
+      esc(depsStr),
+      esc(t.info || ''),
+    ].join(','));
+  });
+
+  const bom = '﻿';
+  const blob = new Blob([bom + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (activeProject.name || '排期导出') + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 200);
+}
+
+// ============================================================
+// SECTION 8: New Project Dialog
+// ============================================================
+function showNewProjectDialog() {
+  selectedTemplate = 'from-template';
+  document.getElementById('newProjectName').value = '';
+  document.getElementById('templateOptions').querySelectorAll('button').forEach(b => {
+    b.classList.toggle('selected', b.dataset.template === selectedTemplate);
+  });
+  document.getElementById('newProjectDialog').classList.add('show');
+  setTimeout(() => document.getElementById('newProjectName').focus(), 100);
+}
+
+function closeNewProjectDialog() {
+  document.getElementById('newProjectDialog').classList.remove('show');
+}
+
+function confirmCreateProject() {
+  const name = document.getElementById('newProjectName').value.trim();
+  if (!name) {
+    alert('请输入项目名称');
+    return;
+  }
+  createProject(name, selectedTemplate === 'from-template');
+  closeNewProjectDialog();
+}
+
+// Template option click handler
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('templateOptions').addEventListener('click', function(e) {
+    if (e.target.tagName === 'BUTTON' && e.target.dataset.template) {
+      selectedTemplate = e.target.dataset.template;
+      this.querySelectorAll('button').forEach(b => {
+        b.classList.toggle('selected', b.dataset.template === selectedTemplate);
+      });
+    }
+  });
+
+  // Enter key in dialog name input
+  document.getElementById('newProjectName').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') confirmCreateProject();
+    if (e.key === 'Escape') closeNewProjectDialog();
+  });
+
+  // Click overlay background to close
+  document.getElementById('newProjectDialog').addEventListener('click', function(e) {
+    if (e.target === this) closeNewProjectDialog();
+  });
+});
+
+// ============================================================
+// SECTION 9: Initialization
+// ============================================================
+function buildTeamsList() {
+  if (!activeProject) return;
+  const teams = [...new Set(activeProject.tasks.map(t => t.team))].sort();
+  const sel = document.getElementById('teamFilter');
+  sel.innerHTML = '<option value="all">全部团队</option>';
+  teams.forEach(t => {
+    const o = document.createElement('option');
+    o.value = t;
+    o.textContent = t;
+    sel.appendChild(o);
+  });
+}
+
+document.getElementById('phaseFilter').addEventListener('change', function() {
+  phaseFilter = this.value;
+  renderGantt();
+});
+
+document.getElementById('teamFilter').addEventListener('change', function() {
+  teamFilter = this.value;
+  renderGantt();
+});
+
+document.getElementById('projectSelector').addEventListener('change', function() {
+  if (this.value) switchProject(this.value);
+});
+
+document.getElementById('startDateInput').addEventListener('change', function() {
+  updateProjectStartDate(this.value || null);
+});
+
+// Bootstrap
+initDataStore();
+buildTeamsList();
+render();
+</script>
+</body>
+</html>
