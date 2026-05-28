@@ -25,8 +25,8 @@ from typing import NamedTuple
 SCRIPT_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = SCRIPT_DIR / "ipd_knowledge_base" / "output"
 
-DEEPSEEK_URL = "https://api.deepseek.com/anthropic/v1/messages"
-DEEPSEEK_MODEL = "deepseek-v4-pro[1m]"
+DEEPSEEK_URL = "https://api.deepseek.com/v1/chat/completions"
+DEEPSEEK_MODEL = "deepseek-chat"
 PUSHPLUS_URL = "https://www.pushplus.plus/send"
 
 beijing_tz = timezone(timedelta(hours=8))
@@ -219,25 +219,18 @@ def call_deepseek(prompt: str, system: str = "", max_tokens: int = 8192) -> str:
         "model": DEEPSEEK_MODEL,
         "max_tokens": max_tokens,
         "messages": messages,
-        "thinking": {"type": "disabled"},
     }).encode("utf-8")
 
     headers = {
-        "x-api-key": api_key,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
     }
 
     req = urllib.request.Request(DEEPSEEK_URL, data=body, headers=headers)
-    with urllib.request.urlopen(req, timeout=180) as resp:
+    with urllib.request.urlopen(req, timeout=300) as resp:
         data = json.loads(resp.read().decode("utf-8"))
 
-    content_blocks = data.get("content", [])
-    text_parts = []
-    for block in content_blocks:
-        if block.get("type") == "text":
-            text_parts.append(block.get("text", ""))
-    return "\n".join(text_parts)
+    return data["choices"][0]["message"]["content"]
 
 
 def run_llm_analysis(results: list[dict]) -> str:
