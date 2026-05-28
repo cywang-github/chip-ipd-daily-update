@@ -396,6 +396,7 @@ def build_html_report(step2: str, step3: str, step4: str) -> str:
     """构建完整 HTML 报告（简化单页版）"""
     # 将 Markdown 转换为简单 HTML
     def md_to_html(text: str) -> str:
+        import re
         lines = text.split("\n")
         html_lines: list[str] = []
         in_list = False
@@ -420,32 +421,27 @@ def build_html_report(step2: str, step3: str, step4: str) -> str:
                 if not in_list:
                     html_lines.append('<ul style="margin-left:20px;">')
                     in_list = True
-                # 处理加粗和链接
                 item = stripped[2:]
                 item = item.replace("**[新]**", '<span class="tag tag-new">新</span> ')
                 item = item.replace("**[更新]**", '<span class="tag tag-ref">更新</span> ')
                 item = item.replace("**[确认]**", '<span class="tag tag-ok">确认</span> ')
-                # Markdown 链接转换
-                import re
                 item = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank">\1</a>', item)
-                # 加粗转换
                 item = re.sub(r'\*\*([^*]+)\*\*', r'<b>\1</b>', item)
                 html_lines.append(f"<li>{item}</li>")
             elif stripped.startswith("- "):
                 if not in_list:
                     html_lines.append('<ul style="margin-left:20px;">')
                     in_list = True
-                import re
-                item = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank">\1</a>', item)
+                item = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank">\1</a>', stripped[2:])
                 item = re.sub(r'\*\*([^*]+)\*\*', r'<b>\1</b>', item)
-                html_lines.append(f"<li>{stripped[2:]}</li>")
+                html_lines.append(f"<li>{item}</li>")
             else:
                 if in_list:
                     html_lines.append("</ul>")
                     in_list = False
-                stripped = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank">\1</a>', stripped)
-                stripped = re.sub(r'\*\*([^*]+)\*\*', r'<b>\1</b>', stripped)
-                html_lines.append(f"<p>{stripped}</p>")
+                para = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank">\1</a>', stripped)
+                para = re.sub(r'\*\*([^*]+)\*\*', r'<b>\1</b>', para)
+                html_lines.append(f"<p>{para}</p>")
         if in_list:
             html_lines.append("</ul>")
         return "\n".join(html_lines)
