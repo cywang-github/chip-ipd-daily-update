@@ -42,27 +42,26 @@ SEARCH_QUERIES = [
     ("F-补充", "芯片 IPD 集成产品开发 敏捷 半导体 新方法 2026"),
 ]
 
-ANALYSIS_SYSTEM_PROMPT = """你是半导体IPD分析师。根据搜索结果，仅报告最近7天内的**新增/更新**信息。
+ANALYSIS_SYSTEM_PROMPT = """你是半导体IPD分析师。根据搜索结果，提取对纳芯微有价值的增量信息。
 
-输出格式（Markdown，仅输出有内容的分类）：
+输出简洁Markdown：
 
-## 步骤二：增量信息汇总
+## 步骤二：增量信息
 ### A. 国外公司
-- **[新]** 或 **[更新]** 标题 | 来源URL
+- **[新]** 或 **[更新]** 标题 | URL
   - 核心内容（1-2句）
 
-### B-F 同上
+### B-F 同上（无内容则跳过该分类）
 
 ## 步骤三：关键变化
-- 一句话分析（现象+启示），最多3条
+- 现象+启示，最多3条
 
 ## 步骤四：建议
-### P0
+### P0 / P1
 - 建议 | 可行性
 
-规则：
-- 无新信息的分类直接跳过
-- 禁止使用：赋能、抓手、闭环、对齐、颗粒度、底层逻辑"""
+规则：已过时或无关的内容直接跳过。禁止用赋能/抓手/闭环/对齐/颗粒度/底层逻辑。"""
+
 
 
 def get_api_keys() -> tuple[str, str]:
@@ -185,13 +184,13 @@ def run_llm_analysis(results: list[dict]) -> str:
     print("=" * 60)
 
     search_text = format_search_results(results)
-    prompt = f"""以下是{TODAY}半导体行业搜索结果（{len(results)}条）。仅报告真正新增或更新的信息，无新信息则标注"本日无重大更新"。
+    prompt = f"""{TODAY}半导体行业搜索（{len(results)}条）。提取有价值的增量信息，旧闻或无关内容直接跳过。
 
-=== 搜索结果 ===
+=== 结果 ===
 {search_text}
 
 === 请分析 ===
-今天是{TODAY}，仅关注最近7天内发布的新内容。旧闻或已稳定趋势标注为[确认]或直接跳过。"""
+如果确实没有值得关注的新信息，回复"本日无重大更新"即可。"""
 
     print(f"  输入: {len(results)} 条搜索结果")
     response = call_deepseek(prompt, system=ANALYSIS_SYSTEM_PROMPT, max_tokens=4096)
