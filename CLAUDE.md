@@ -71,20 +71,25 @@
 
 | 文件 | 说明 |
 |------|------|
+| [auto_daily_update.py](auto_daily_update.py) | 每日自动更新脚本（GitHub Actions 8:30），搜索→LLM分析→HTML报告→微信推送 |
 | [检索源清单.md](ipd_knowledge_base/检索源清单.md) | 定时检索源头，定义搜索范围和数据源 |
-| [generate_report.py](ipd_knowledge_base/generate_report.py) | 报告生成器，支持存量扫描和完整五步两种模式 |
+| [generate_report.py](ipd_knowledge_base/generate_report.py) | 报告生成器（手动模式），支持存量扫描和完整五步两种模式 |
 | [output/](ipd_knowledge_base/output/) | 报告输出目录，包含 `index.html` + `push_log.txt` |
 
-#### 报告结构（2026-05-24 重构）
+#### 报告结构
 
-单 HTML 文件（`index.html`）包含 5 个 Tab 标签页：
+两种报告模式：
+
+**自动模式**（`auto_daily_update.py`）：单页 HTML，含 3 个区块（增量信息 / 关键变化 / P0/P1 建议）
+
+**手动模式**（`generate_report.py`）：5 个 Tab 标签页：
 
 | Tab | 内容 | 说明 |
 |-----|------|------|
-| 概览 | Hero + 指标 + 执行摘要 + 分类概况 | 主页面，简洁总结 |
+| 概览 | Hero + 指标 + 执行摘要 | 主页面，简洁总结 |
 | 检索源汇总 | 按 A-F 六类分组卡片 | 不含日期，含来源链接 |
-| 建议 | P0/P1/P2 优先级建议 | 步骤四产出 |
+| 建议 | P0/P1 优先级建议 | 步骤四产出 |
 | 总结 | 行动要点 + P0 清单 | 步骤三四提炼 |
-| 分析 | 五维度对比（现象/原因/启示） | 步骤三产出 |
+| 分析 | 关键变化（现象/原因/启示） | 步骤三产出 |
 
 微信推送包含：主页概览 + 各分类汇总 + 来源链接 + P0 建议。
