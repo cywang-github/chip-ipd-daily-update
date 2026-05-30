@@ -32,92 +32,36 @@ PUSHPLUS_URL = "https://www.pushplus.plus/send"
 beijing_tz = timezone(timedelta(hours=8))
 TODAY = datetime.now(beijing_tz).strftime("%Y-%m-%d")
 
-# 搜索查询（从检索源清单提炼）
+# 搜索查询（每分类 1 条，聚焦最近 7 天增量信息）
 SEARCH_QUERIES = [
-    ("A-国外公司", "semiconductor IDM fabless new product introduction NPI 2026 Texas Instruments Infineon"),
-    ("A-国外公司", "芯片 半导体 新品导入 流程管理 TI NXP ST 最新动态"),
-    ("B-国内公司", "纳芯微 NOVOSENSE 比亚迪半导体 华为海思 芯片 最新进展"),
-    ("B-国内公司", "国产芯片 车规级 传感器 信号链 2026"),
-    ("C-GitHub", "chip design workflow PLM semiconductor github 2026"),
-    ("C-GitHub", "SiliconCompiler OpenLane OpenROAD 芯片设计 开源"),
-    ("D-学术", "ISSCC DAC HotChips semiconductor 2026 call for papers"),
-    ("E-标准", "AEC-Q100 ISO 26262 车规认证 semiconductor 最新 2026"),
-    ("E-标准", "semiconductor quality standard automotive reliability 2026 update"),
+    ("A-国外公司", "semiconductor NPI new product TI Infineon NXP 2026 latest"),
+    ("B-国内公司", "纳芯微 比亚迪半导体 国产芯片 车规 最新进展 2026"),
+    ("C-GitHub", "chip design PLM workflow github 2026 latest"),
+    ("D-学术", "ISSCC HotChips DAC semiconductor 2026 paper"),
+    ("E-标准", "AEC-Q100 ISO26262 automotive semiconductor 2026 update"),
+    ("F-补充", "芯片 IPD 集成产品开发 敏捷 半导体 新方法 2026"),
 ]
 
-# 用于 LLM 分析的系统提示
-ANALYSIS_SYSTEM_PROMPT = """你是一位半导体行业 IPD（集成产品开发）专家和分析师。
-你的任务是根据提供的网页搜索结果，生成一份芯片行业 IPD 知识更新报告。
+ANALYSIS_SYSTEM_PROMPT = """你是半导体IPD分析师。根据搜索结果，提取对纳芯微有价值的增量信息。
 
-输出必须严格使用以下 Markdown 格式，分为三个部分：
+输出简洁Markdown：
 
----
-
-## 步骤二：六类信息汇总
-
+## 步骤二：增量信息
 ### A. 国外公司
-对每条相关信息：
-- **[新]/[更新]/[确认]** 标题
-  - 核心内容（2-3 句话，含量化数据如有）
-  - 来源：[来源名](URL)
-  - 对纳芯微参考价值：一句话说明
+- **[新]** 或 **[更新]** 标题 | URL
+  - 核心内容（1-2句）
 
-### B. 国内公司
-（同上格式）
+### B-F 同上（无内容则跳过该分类）
 
-### C. GitHub 项目
-（同上格式）
+## 步骤三：关键变化
+- 现象+启示，最多3条
 
-### D. 学术论文
-（同上格式）
+## 步骤四：建议
+### P0 / P1
+- 建议 | 可行性
 
-### E. 行业标准
-（同上格式）
+规则：已过时或无关的内容直接跳过。禁止用赋能/抓手/闭环/对齐/颗粒度/底层逻辑。"""
 
-### F. 待补充方向
-指出搜索结果中缺失但有价值的方向，和知识库中已有的方向
-
----
-
-## 步骤三：跨类对比与行业分析
-
-### 维度一：中美差异
-现象 / 原因 / 纳芯微启示
-
-### 维度二：汽车 vs 消费
-现象 / 原因 / 纳芯微启示
-
-### 维度三：IDM vs Fabless
-现象 / 原因 / 纳芯微启示
-
-### 维度四：新势力创新
-现象 / 原因 / 纳芯微启示
-
-### 维度五：AI 渗透
-现象 / 原因 / 纳芯微启示
-
----
-
-## 步骤四：纳芯微发展建议
-
-### P0（立即行动）
-- 建议内容 | 可行性：高/中/低
-（每条一行，至少 2 条）
-
-### P1（短期规划）
-- 建议内容 | 可行性：高/中/低
-（至少 2 条）
-
-### P2（中长期关注）
-- 建议内容 | 可行性：高/中/低
-（至少 2 条）
-
----
-
-要求：
-- 每类至少 3 条信息
-- 量化数据优先（百分比、金额、时间线）
-- 禁止使用：赋能、抓手、闭环、对齐、颗粒度、底层逻辑、打法、组合拳"""
 
 
 def get_api_keys() -> tuple[str, str]:
@@ -240,21 +184,16 @@ def run_llm_analysis(results: list[dict]) -> str:
     print("=" * 60)
 
     search_text = format_search_results(results)
-    prompt = f"""以下是 {TODAY} 半导体/IPD 行业网页搜索结果（共 {len(results)} 条）。
+    prompt = f"""{TODAY}半导体行业搜索（{len(results)}条）。提取有价值的增量信息，旧闻或无关内容直接跳过。
 
-请按指定格式输出完整的分析报告。
-
-=== 搜索结果 ===
-
+=== 结果 ===
 {search_text}
 
-=== 请开始分析 ===
-
-注意：今天是 {TODAY}。如果某些结果不是 2026 年的，标注为 [确认]（已有知识）而非 [新]。
-如果某个分类搜索结果不足，不要编造，可在 F 分类中说明缺口。"""
+=== 请分析 ===
+如果确实没有值得关注的新信息，回复"本日无重大更新"即可。"""
 
     print(f"  输入: {len(results)} 条搜索结果")
-    response = call_deepseek(prompt, system=ANALYSIS_SYSTEM_PROMPT, max_tokens=8192)
+    response = call_deepseek(prompt, system=ANALYSIS_SYSTEM_PROMPT, max_tokens=4096)
     print(f"  输出: {len(response)} 字符")
     return response
 
@@ -396,6 +335,7 @@ def build_html_report(step2: str, step3: str, step4: str) -> str:
     """构建完整 HTML 报告（简化单页版）"""
     # 将 Markdown 转换为简单 HTML
     def md_to_html(text: str) -> str:
+        import re
         lines = text.split("\n")
         html_lines: list[str] = []
         in_list = False
@@ -420,32 +360,27 @@ def build_html_report(step2: str, step3: str, step4: str) -> str:
                 if not in_list:
                     html_lines.append('<ul style="margin-left:20px;">')
                     in_list = True
-                # 处理加粗和链接
                 item = stripped[2:]
                 item = item.replace("**[新]**", '<span class="tag tag-new">新</span> ')
                 item = item.replace("**[更新]**", '<span class="tag tag-ref">更新</span> ')
                 item = item.replace("**[确认]**", '<span class="tag tag-ok">确认</span> ')
-                # Markdown 链接转换
-                import re
                 item = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank">\1</a>', item)
-                # 加粗转换
                 item = re.sub(r'\*\*([^*]+)\*\*', r'<b>\1</b>', item)
                 html_lines.append(f"<li>{item}</li>")
             elif stripped.startswith("- "):
                 if not in_list:
                     html_lines.append('<ul style="margin-left:20px;">')
                     in_list = True
-                import re
-                item = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank">\1</a>', item)
+                item = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank">\1</a>', stripped[2:])
                 item = re.sub(r'\*\*([^*]+)\*\*', r'<b>\1</b>', item)
-                html_lines.append(f"<li>{stripped[2:]}</li>")
+                html_lines.append(f"<li>{item}</li>")
             else:
                 if in_list:
                     html_lines.append("</ul>")
                     in_list = False
-                stripped = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank">\1</a>', stripped)
-                stripped = re.sub(r'\*\*([^*]+)\*\*', r'<b>\1</b>', stripped)
-                html_lines.append(f"<p>{stripped}</p>")
+                para = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank">\1</a>', stripped)
+                para = re.sub(r'\*\*([^*]+)\*\*', r'<b>\1</b>', para)
+                html_lines.append(f"<p>{para}</p>")
         if in_list:
             html_lines.append("</ul>")
         return "\n".join(html_lines)
