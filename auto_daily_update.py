@@ -523,8 +523,10 @@ def main():
         wechat_content = build_wechat_summary(step2, step3, step4)
         success = send_wechat(f"芯片IPD更新 ({TODAY})", wechat_content)
 
+        now_str = datetime.now(beijing_tz).strftime("%Y-%m-%d %H:%M")
+        trigger = os.environ.get("GITHUB_EVENT_NAME", "local")
         log_path = OUTPUT_DIR / "push_log.txt"
-        log_entry = f"{TODAY} | 芯片IPD更新 | {'成功' if success else '失败'}\n"
+        log_entry = f"{now_str} | trigger={trigger} | {'OK' if success else 'FAIL'}\n"
         with open(log_path, "a", encoding="utf-8") as f:
             f.write(log_entry)
     else:
