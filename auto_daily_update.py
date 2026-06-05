@@ -278,57 +278,102 @@ def send_wechat(title: str, content: str) -> bool:
 
 
 def build_wechat_summary(step2: str, step3: str, step4: str) -> str:
-    """构建微信推送摘要（精简版，含分类汇总和建议）"""
-    # 提取各分类统计
-    cat_counts: dict[str, int] = {}
+    """构建微信推送摘要 — 按分类展示增量条目 + 关键变化 + P0 建议"""
+    import re
+
+    # ---- 解析步骤二：按分类提取条目（标题、URL、描述） ----
+    cat_entries: dict[str, list[dict]] = {}  # { "A. 国外公司": [{"tag": "新", "title": "...", "url": "...", "desc": "..."}] }
+    current_cat = ""
+    current_entry: dict | None = None
+
     for line in step2.split("\n"):
-        if line.startswith("### ") and len(line) > 4:
-            cat_name = line[4:].strip()
-            cat_counts[cat_name] = 0
-        if line.startswith("- **") or line.startswith("- **[新]") or line.startswith("- **[更新]"):
-            for cat in cat_counts:
-                cat_counts[cat] += 1
+        stripped = line.strip()
+        # 分类标题 ### A. xxx
+        if stripped.startswith("### "):
+            current_cat = stripped[4:].strip()
+            if current_cat not in cat_entries:
+                cat_entries[current_cat] = []
+            current_entry = None
+            continue
+        # 条目行: - **[新]** 标题 | URL
+        m = re.match(r'-\s*\*\*\[(新|更新)\]\*\*\s*(.+?)\s*\|\s*(https?://\S+)', stripped)
+        if m:
+            current_entry = {"tag": m.group(1), "title": m.group(2).strip(), "url": m.group(3).strip(), "desc": ""}
+            if current_cat:
+                cat_entries.setdefault(current_cat, []).append(current_entry)
+            continue
+        # 描述行:   - 核心内容
+        if stripped.startswith("- ") and current_entry is not None:
+            current_entry["desc"] = stripped[2:].strip()
 
-    cat_html = ""
-    for name, cnt in cat_counts.items():
-        cat_html += f"<li><b>{name}</b>：{cnt} 条</li>"
+    # ---- 构建分类 HTML ----
+    cat_html_parts: list[str] = []
+    for cat_name, entries in cat_entries.items():
+        if not entries:
+            continue
+        items_html = ""
+        for e in entries[:4]:  # 每分类最多 4 条
+            tag_color = "#059669" if e["tag"] == "新" else "#2563eb"
+            tag_text = "🆕" if e["tag"] == "新" else "🔄"
+            desc_text = f" — {e['desc']}" if e["desc"] else ""
+            items_html += (
+                f'<li style="margin-bottom:6px;">'
+                f'<span style="color:{tag_color};font-weight:600;">{tag_text}</span> '
+                f'<a href="{e["url"]}" style="color:#1a1a2e;text-decoration:none;">{e["title"]}</a>'
+                f'<span style="color:#6b7280;font-size:12px;">{desc_text}</span>'
+                f'</li>'
+            )
+        cat_html_parts.append(
+            f'<div style="margin-bottom:12px;">'
+            f'<b style="color:#374151;">{cat_name}</b>'
+            f'<ul style="margin:4px 0 0 0;padding-left:18px;">{items_html}</ul>'
+            f'</div>'
+        )
+    cat_section = "\n".join(cat_html_parts) if cat_html_parts else "<p>本日无重要增量信息</p>"
 
-    # 提取 P0 建议
+    # ---- 解析步骤三：关键变化 ----
+    findings_html = ""
+    for line in step3.split("\n"):
+        stripped = line.strip()
+        if stripped.startswith("- ") and len(stripped) > 2:
+            findings_html += f"<li>{stripped[2:]}</li>"
+    findings_section = f"<ul>{findings_html}</ul>" if findings_html else "<p>详见完整报告</p>"
+
+    # ---- 解析步骤四：P0 建议 ----
     p0_items: list[str] = []
     in_p0 = False
     for line in step4.split("\n"):
-        if "P0" in line and "立即行动" in line:
+        s = line.strip()
+        if s.startswith("### P0") or s.startswith("**P0"):
             in_p0 = True
             continue
-        if "P1" in line or "P2" in line:
+        if s.startswith("### P1") or s.startswith("**P1"):
             in_p0 = False
             continue
-        if in_p0 and line.strip().startswith("-"):
-            p0_items.append(line.strip("- ").strip())
-
+        if in_p0 and s.startswith("- "):
+            p0_items.append(s[2:].strip())
     p0_html = ""
-    for item in p0_items[:3]:
+    for item in p0_items[:4]:
         p0_html += f"<li>{item}</li>"
 
-    # 提取关键发现（步骤三第一条现象）
-    key_findings = ""
-    phenomenon_count = 0
-    for line in step3.split("\n"):
-        if line.strip().startswith("现象") and phenomenon_count < 2:
-            key_findings += f"<li>{line.strip()}</li>"
-            phenomenon_count += 1
+    total = sum(len(v) for v in cat_entries.values())
+    return f"""<h3>📊 芯片IPD行业每日更新</h3>
+<p style="color:#666;font-size:12px;">{TODAY} | 共 {total} 条增量信息 | 下次更新：明天 8:30</p>
+<hr style="border:none;border-top:1px solid #e5e7eb;">
 
-    return f"""<h3>芯片IPD行业每日更新</h3>
-<p style="color:#666;">{TODAY} 自动生成 | 下次更新：明天 8:30</p>
-<hr>
-<h4>分类统计</h4>
-<ul>{cat_html}</ul>
-<h4>关键发现</h4>
-<ul>{key_findings if key_findings else '<li>详见完整报告</li>'}</ul>
-<h4>P0 行动建议</h4>
-<ol>{p0_html if p0_html else '<li>详见完整报告</li>'}</ol>
-<hr>
-<p style="font-size:11px;color:#888;">完整报告见 GitHub Actions 运行日志</p>"""
+<h4 style="margin-bottom:8px;">📰 各类增量信息</h4>
+{cat_section}
+
+<hr style="border:none;border-top:1px solid #e5e7eb;">
+<h4 style="margin-bottom:4px;">🔍 关键变化</h4>
+{findings_section}
+
+<hr style="border:none;border-top:1px solid #e5e7eb;">
+<h4 style="margin-bottom:4px;">⚡ P0 行动建议</h4>
+<ol style="padding-left:18px;">{p0_html if p0_html else '<li>详见完整报告</li>'}</ol>
+
+<hr style="border:none;border-top:1px solid #e5e7eb;">
+<p style="font-size:10px;color:#9ca3af;">完整报告 → GitHub Actions Artifact</p>"""
 
 
 def build_html_report(step2: str, step3: str, step4: str) -> str:
