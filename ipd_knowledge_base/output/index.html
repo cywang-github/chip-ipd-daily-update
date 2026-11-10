@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>芯片IPD每日更新 2026-11-09</title>
+<title>芯片IPD每日更新 2026-11-10</title>
 <style>
     :root {
         --bg: #f5f5f5; --card: #fff; --text: #1a1a2e; --muted: #6b7280;
@@ -50,7 +50,7 @@
 <body>
 <div class="topbar">
     <div class="brand">芯片IPD知识库<span>| 每日自动更新</span></div>
-    <div style="font-size:13px;opacity:.7;">2026-11-09</div>
+    <div style="font-size:13px;opacity:.7;">2026-11-10</div>
 </div>
 <div class="container">
     <div class="hero">
@@ -62,55 +62,47 @@
         <h2>六类信息汇总</h2>
         <h3 style="margin-top:24px;">A. 国外公司</h3>
 <ul style="margin-left:20px;">
-<li><span class="tag tag-new">新</span>  Infineon 德累斯顿全球最大功率半导体及模拟/混合信号晶圆厂开业 | https://www.prnewswire.com/news/infineon-technologies-ag/</li>
-<li>2026年7月投产，聚焦功率器件与模拟/混合信号。对纳芯微的信号链与车规模拟产品构成欧洲本土产能竞争，也印证车规模拟赛道资本加码。</li>
-<li><span class="tag tag-new">新</span>  TI 推出业界最小全功能多协议工业以太网通信模块 | https://www.ti.com/about-ti/newsroom.html</li>
-<li>2026年11月5日发布，简化工业以太网集成。工业通信接口是纳芯微数字隔离/接口产品线的邻近战场，TI 以模块化方案下沉客户门槛，需关注其价格与生态打法。</li>
+<li><span class="tag tag-new">新</span>  Synopsys 推进 Agentic AI 芯片设计，联合 AMD 与 Microsoft | https://news.synopsys.com/2026-07-27-Synopsys-Advances-Agentic-AI-Chip-Design-with-AMD-and-Microsoft</li>
+<li>Synopsys 推出两套 Agentic EDA 工作流，与微软合作开发、AMD 已实际使用，在 Microsoft Discovery 上开放评估。EDA 工具链正从“人手操作”转向“代理自动执行多步骤设计任务”。</li>
+<li><span class="tag tag-new">新</span>  Synopsys Cloud GitHub Apps 将芯片设计工具接入 GitHub 工作流 | https://www.synopsys.com/blogs/chip-design/chip-design-tools-github-hardware-development.html</li>
+<li>芯片设计工具可直接在 GitHub 中运行 CI/CD，硬件开发的版本管理与自动化验证开始向软件工程范式靠拢。</li>
 </ul>
-<h3 style="margin-top:24px;">C. GitHub/EDA工具</h3>
+<h3 style="margin-top:24px;">C. 开源/工具生态</h3>
 <ul style="margin-left:20px;">
-<li><span class="tag tag-new">新</span>  Synopsys 联合 AMD、Microsoft 推进 Agentic AI 芯片设计流程 | https://news.synopsys.com/2026-07-27-Synopsys-Advances-Agentic-AI-Chip-Design-with-AMD-and-Microsoft</li>
-<li>全自动 debug 收敛流程初步结果显示周期缩短最高40%。对纳芯微中低复杂度模拟/混合信号设计的验证效率有潜在借鉴价值，但模拟设计自动化收益有限。</li>
-</ul>
-<h3 style="margin-top:24px;">E. 标准</h3>
-<ul style="margin-left:20px;">
-<li><span class="tag tag-ref">更新</span>  AEC-Q100 Rev-J 已为现行版本，取代 Rev-H（2014） | http://www.aecouncil.com/Documents/AEC_Q100_Rev_J_Base_Document.pdf</li>
-<li>Rev-J 相对 Rev-H 有实质修订。纳芯微车规产品线若仍按 Rev-H 做认证基线，需核对差异项并更新内部认证与测试规范。</li>
-<li><span class="tag tag-new">新</span>  AEC-Q004《汽车零缺陷框架》已发布 | http://www.aecouncil.com/AECDocuments.html</li>
-<li>面向零缺陷的流程/方法/工具框架。对纳芯微车规质量体系是新增的客户预期参照，可作为质量体系对标项。</li>
+<li><span class="tag tag-new">新</span>  EvoHDL：基于遗传算法的 RTL 自动优化实验 | https://github.com/primeX3690/chip-design</li>
+<li>用遗传算法变异 Verilog，以 Verilator 仿真做功能正确性打分、Yosys 综合做面积/时序代理评估，属于 AI 辅助 RTL 优化的早期探索（实验性项目，非产品级）。</li>
+<li><span class="tag tag-ref">更新</span>  GitHub chip-design 话题下出现 AI 生成 RTL 的“证据剖面”工具 | https://github.com/topics/chip-design</li>
+<li>针对 AI 生成 RTL 暴露功能基准测试覆盖不到的问题，尝试建立可验证性证据体系——与 Agentic EDA 的可信度问题直接相关。</li>
 </ul>
 <h3 style="margin-top:24px;">D. 学术会议</h3>
 <ul style="margin-left:20px;">
-<li><span class="tag tag-new">新</span>  ISSCC 2026、Hot Chips 2026、DAC 2026 均已结束 | https://www.dac.com/2026</li>
-<li>仅确认会议状态，未提供具体论文内容，暂无可提取的技术增量。</li>
+<li><span class="tag tag-new">新</span>  DAC 2026 / Hot Chips 2026 / ISSCC 2026 均已结束或进入收尾 | https://www.dac.com/2026</li>
+<li>本轮仅检索到议程与论文集索引页，无具体论文内容披露，暂无可提取的技术增量。</li>
 </ul>
+<p>> B（国内公司）、E、F 类：本轮搜索结果无相关内容，跳过。</p>
     </div>
 
     <div class="section">
         <h2>跨类对比分析</h2>
         <ul style="margin-left:20px;">
-<li><b>车规模拟赛道产能与标准双升级</b>：英飞凌大厂投产 + AEC-Q100 Rev-J/Q004 落地，说明车规认证门槛与供给竞争同步抬高。启示：纳芯微需尽快确认认证基线版本，避免客户审核时出现规范落差。</li>
-<li><b>TI 以模块化方案降低工业以太网客户门槛</b>：国际大厂在接口/隔离邻近市场用"整模块"而非单芯片获客。启示：纳芯微在工业接口产品上需评估是继续卖器件还是提供参考方案，否则易被方案商截流。</li>
-<li><b>EDA 自动化仍集中在数字前端</b>：Synopsys Agentic AI 的收益点在 debug 收敛，模拟/混合信号设计受益有限。启示：短期内不宜把设计效率提升寄望于外部 EDA 工具，模拟 IP 复用与内部流程仍是主线。</li>
+<li><b>EDA 竞争焦点从“工具功能”转向“代理编排能力”</b>：Synopsys 联合微软、AMD 落地 Agentic 工作流，意味着未来 EDA 采购评估会加入“自动化流程覆盖度”维度。对纳芯微这类以自研 IP 和产品定义为核心的芯片公司，短期不改变工具选型，但需关注供应商锁定与数据接口开放度。</li>
+<li><b>AI 生成 RTL 的“可验证性”成为独立问题</b>：GitHub 上已出现专门针对 AI 生成 RTL 的证据剖面工具，说明行业意识到生成速度不是瓶颈、验证可信度才是。纳芯微若引入任何 AI 辅助设计，验证环节的投入不能压缩。</li>
+<li><b>硬件开发向软件工程流程靠拢</b>：GitHub CI/CD 进入芯片设计，版本管理、自动回归的工程化要求上升，对中小规模设计团队的流程规范是渐进式压力。</li>
 </ul>
     </div>
 
     <div class="section">
         <h2>纳芯微发展建议</h2>
-        <h3 style="margin-top:24px;">P0</h3>
+        <h3 style="margin-top:24px;">P1</h3>
 <ul style="margin-left:20px;">
-<li>核对纳芯微车规产品认证基线是否已切换至 AEC-Q100 Rev-J，并对照 Rev-H 差异项更新测试与文档 | 可行性高，标准原文公开，工作量集中在认证与质量部门。</li>
-<li>评估 AEC-Q004 零缺陷框架与现有质量体系的差距，形成对标清单 | 可行性高，可作为车规客户审核的前置准备。</li>
-</ul>
-<h3 style="margin-top:24px;">P1</h3>
-<ul style="margin-left:20px;">
-<li>针对 TI 工业以太网模块化动向，梳理纳芯微数字隔离/接口产品在工业客户中的方案化能力缺口 | 可行性中，需市场与 FAE 联合评估。</li>
-<li>跟踪英飞凌德累斯顿厂投产后的产品定价与交期策略，评估对车规模拟/功率邻近产品的价格传导 | 可行性中，属持续监测类。</li>
+<li>跟踪 Synopsys Agentic EDA 在 Microsoft Discovery 上的评估开放情况，判断其是否影响现有 EDA 合同续签节奏 | 可行性高，公开信息即可跟踪，无需投入</li>
+<li>内部梳理 AI 辅助 RTL 生成的使用边界，明确“生成结果必须经独立验证”的规则 | 可行性高，属流程规范，成本低</li>
+<li>关注 DAC/ISSCC 论文正式发布后的模拟与混合信号方向内容（与纳芯微产品线更相关），本轮索引页无实质内容，下轮补取 | 可行性中，需等待论文集上线</li>
 </ul>
     </div>
 </div>
 <div class="footer">
-    <p>芯片IPD知识库 · 云端自动生成 · 下次更新：2026-11-09 明天 8:30</p>
+    <p>芯片IPD知识库 · 云端自动生成 · 下次更新：2026-11-10 明天 8:30</p>
 </div>
 </body>
 </html>
