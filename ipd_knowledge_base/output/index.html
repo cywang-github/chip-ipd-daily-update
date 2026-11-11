@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>芯片IPD每日更新 2026-11-10</title>
+<title>芯片IPD每日更新 2026-11-11</title>
 <style>
     :root {
         --bg: #f5f5f5; --card: #fff; --text: #1a1a2e; --muted: #6b7280;
@@ -50,7 +50,7 @@
 <body>
 <div class="topbar">
     <div class="brand">芯片IPD知识库<span>| 每日自动更新</span></div>
-    <div style="font-size:13px;opacity:.7;">2026-11-10</div>
+    <div style="font-size:13px;opacity:.7;">2026-11-11</div>
 </div>
 <div class="container">
     <div class="hero">
@@ -60,49 +60,47 @@
 
     <div class="section">
         <h2>六类信息汇总</h2>
-        <h3 style="margin-top:24px;">A. 国外公司</h3>
+        <h3 style="margin-top:24px;">E. 标准</h3>
 <ul style="margin-left:20px;">
-<li><span class="tag tag-new">新</span>  Synopsys 推进 Agentic AI 芯片设计，联合 AMD 与 Microsoft | https://news.synopsys.com/2026-07-27-Synopsys-Advances-Agentic-AI-Chip-Design-with-AMD-and-Microsoft</li>
-<li>Synopsys 推出两套 Agentic EDA 工作流，与微软合作开发、AMD 已实际使用，在 Microsoft Discovery 上开放评估。EDA 工具链正从“人手操作”转向“代理自动执行多步骤设计任务”。</li>
-<li><span class="tag tag-new">新</span>  Synopsys Cloud GitHub Apps 将芯片设计工具接入 GitHub 工作流 | https://www.synopsys.com/blogs/chip-design/chip-design-tools-github-hardware-development.html</li>
-<li>芯片设计工具可直接在 GitHub 中运行 CI/CD，硬件开发的版本管理与自动化验证开始向软件工程范式靠拢。</li>
+<li><span class="tag tag-ref">更新</span>  AEC-Q100 Rev J1 2026  workshop 材料 | http://www.aecouncil.com/files/Workshops/2026_US_AEC_Workshop/W_9-AEC-Q100+RevJ1+IC+2026+Workshop+Updates.pdf</li>
+<li>ESD/LU 测试方法与现行 ESD 路线存在偏离；AEC-O100-011 Rev D 的 CDM 已与 JS-002 方法接轨，但保留了凸点（cor balls）、3 次 zap 等差异项；正在讨论 1200V 耐压器件的测试方法适配，以及 1 zap 与 3 zap 的协调问题。</li>
+<li><span class="tag tag-ref">更新</span>  AEC-Q100 Rev J 与 J1 附录为当前有效版本（Rev H 已被取代） | https://www.charteredsemi.com/aec-q100-qualification-explained/</li>
+<li>确认当前基础文件为 Rev J + J1 addendum，认证以失效机理为导向，由 AEC 发布，不经过监管机构。</li>
 </ul>
-<h3 style="margin-top:24px;">C. 开源/工具生态</h3>
+<h3 style="margin-top:24px;">A. 国外公司</h3>
 <ul style="margin-left:20px;">
-<li><span class="tag tag-new">新</span>  EvoHDL：基于遗传算法的 RTL 自动优化实验 | https://github.com/primeX3690/chip-design</li>
-<li>用遗传算法变异 Verilog，以 Verilator 仿真做功能正确性打分、Yosys 综合做面积/时序代理评估，属于 AI 辅助 RTL 优化的早期探索（实验性项目，非产品级）。</li>
-<li><span class="tag tag-ref">更新</span>  GitHub chip-design 话题下出现 AI 生成 RTL 的“证据剖面”工具 | https://github.com/topics/chip-design</li>
-<li>针对 AI 生成 RTL 暴露功能基准测试覆盖不到的问题，尝试建立可验证性证据体系——与 Agentic EDA 的可信度问题直接相关。</li>
+<li>无纳芯微直接相关的增量信息（GitHub/PLM/Synopsys 条目为通用工具与流程讨论，无车规模拟/隔离器件相关实质内容）。</li>
 </ul>
-<h3 style="margin-top:24px;">D. 学术会议</h3>
+<h3 style="margin-top:24px;">B-F</h3>
 <ul style="margin-left:20px;">
-<li><span class="tag tag-new">新</span>  DAC 2026 / Hot Chips 2026 / ISSCC 2026 均已结束或进入收尾 | https://www.dac.com/2026</li>
-<li>本轮仅检索到议程与论文集索引页，无具体论文内容披露，暂无可提取的技术增量。</li>
+<li>B/C/D 类无有效增量；F 类无内容。</li>
 </ul>
-<p>> B（国内公司）、E、F 类：本轮搜索结果无相关内容，跳过。</p>
     </div>
 
     <div class="section">
         <h2>跨类对比分析</h2>
         <ul style="margin-left:20px;">
-<li><b>EDA 竞争焦点从“工具功能”转向“代理编排能力”</b>：Synopsys 联合微软、AMD 落地 Agentic 工作流，意味着未来 EDA 采购评估会加入“自动化流程覆盖度”维度。对纳芯微这类以自研 IP 和产品定义为核心的芯片公司，短期不改变工具选型，但需关注供应商锁定与数据接口开放度。</li>
-<li><b>AI 生成 RTL 的“可验证性”成为独立问题</b>：GitHub 上已出现专门针对 AI 生成 RTL 的证据剖面工具，说明行业意识到生成速度不是瓶颈、验证可信度才是。纳芯微若引入任何 AI 辅助设计，验证环节的投入不能压缩。</li>
-<li><b>硬件开发向软件工程流程靠拢</b>：GitHub CI/CD 进入芯片设计，版本管理、自动回归的工程化要求上升，对中小规模设计团队的流程规范是渐进式压力。</li>
+<li><b>AEC-Q100 的 ESD/CDM 方法与 JS-002 接轨、zap 次数在协调</b>：纳芯微车规模拟/隔离产品做 CDM 认证时，需要按最新方法以及凸点等例外条款重新核对测试条件，避免沿用旧版参数。</li>
+<li><b>1200V 级器件的测试方法仍在讨论</b>：如果纳芯微布局高压车规隔离/驱动产品，需要提前跟踪该方法定稿，否则认证路径存在不确定性。</li>
+<li><b>GitHub/agentic 流程进入 RTL 与验证环节（Synopsys 博文）</b>：这与纳芯微自研 IPD 流程关联较弱，不构成近期动作项。</li>
 </ul>
     </div>
 
     <div class="section">
         <h2>纳芯微发展建议</h2>
-        <h3 style="margin-top:24px;">P1</h3>
+        <h3 style="margin-top:24px;">P0</h3>
 <ul style="margin-left:20px;">
-<li>跟踪 Synopsys Agentic EDA 在 Microsoft Discovery 上的评估开放情况，判断其是否影响现有 EDA 合同续签节奏 | 可行性高，公开信息即可跟踪，无需投入</li>
-<li>内部梳理 AI 辅助 RTL 生成的使用边界，明确“生成结果必须经独立验证”的规则 | 可行性高，属流程规范，成本低</li>
-<li>关注 DAC/ISSCC 论文正式发布后的模拟与混合信号方向内容（与纳芯微产品线更相关），本轮索引页无实质内容，下轮补取 | 可行性中，需等待论文集上线</li>
+<li>获取 AEC-Q100 Rev J1 全文及 O100-011 Rev D，比对现行 CDM/ESD 测试规范差异 | 可行性高，公开文件可直接下载</li>
+<li>梳理在研/在售车规料的 CDM 测试条件是否符合 JS-002 接轨后的要求 | 可行性高，内部测试规范自查</li>
+</ul>
+<h3 style="margin-top:24px;">P1</h3>
+<ul style="margin-left:20px;">
+<li>跟踪 1200V TC 敏感器件测试方法的 workshop 进展 | 可行性中，需持续关注 AEC  workshop 更新</li>
 </ul>
     </div>
 </div>
 <div class="footer">
-    <p>芯片IPD知识库 · 云端自动生成 · 下次更新：2026-11-10 明天 8:30</p>
+    <p>芯片IPD知识库 · 云端自动生成 · 下次更新：2026-11-11 明天 8:30</p>
 </div>
 </body>
 </html>
