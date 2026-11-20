@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>芯片IPD每日更新 2026-11-19</title>
+<title>芯片IPD每日更新 2026-11-20</title>
 <style>
     :root {
         --bg: #f5f5f5; --card: #fff; --text: #1a1a2e; --muted: #6b7280;
@@ -50,7 +50,7 @@
 <body>
 <div class="topbar">
     <div class="brand">芯片IPD知识库<span>| 每日自动更新</span></div>
-    <div style="font-size:13px;opacity:.7;">2026-11-19</div>
+    <div style="font-size:13px;opacity:.7;">2026-11-20</div>
 </div>
 <div class="container">
     <div class="hero">
@@ -62,25 +62,38 @@
         <h2>六类信息汇总</h2>
         <h3 style="margin-top:24px;">A. 国外公司</h3>
 <ul style="margin-left:20px;">
-<li><span class="tag tag-new">新</span>  TI 2026年第二轮全面调价（4月1日生效）| https://www.axtekic.com/news/analog-chip-price-increases-in-2026:-industry-trend-continues.html</li>
-<li>部分产品涨幅15%–85%，涉及数字隔离器、隔离驱动等品类——与纳芯微隔离产品线直接重叠。</li>
-<li><span class="tag tag-new">新</span>  ADI/TI/NXP/Infineon/ST/Microchip 2026年12份涨价通知汇总（含生效日期、幅度、backlog规则）| https://globx.eu/blog/buyers-guides/semiconductor-price-increases-2026</li>
-<li>国际大厂集中进入提价周期，交期与订单锁定规则同步收紧。</li>
-<li><span class="tag tag-ref">更新</span>  ST/NXP/TI/Infineon/onsemi 涨价动作延伸至9–10月 | https://www.aetrixelec.com/blog/semiconductor-price-increases-2026-st-nxp-ti-infineon</li>
-<li>涨价非一次性事件，呈分批次、跨季度滚动执行特征。</li>
+<li><span class="tag tag-ref">更新</span>  2026年TI/ADI/NXP/Infineon/ST/Microchip涨价通知汇总 | https://globx.eu/blog/buyers-guides/semiconductor-price-increases-2026</li>
+<li>六大模拟/车载IDM在2026年多轮调价，含生效日期、幅度区间、backlog规则；显示模拟与车规品类供给偏紧、定价权回到原厂。</li>
+<li><span class="tag tag-ref">更新</span>  2026年6月起ST/NXP/TI/Infineon/onsemi第二轮价格调整延伸至9–10月 | https://www.aetrixelec.com/blog/semiconductor-price-increases-2026-st-nxp-ti-infineon</li>
+<li>涨价非一次性动作而是分批次推进，覆盖汽车与工业料号，交期与配额规则同步收紧。</li>
 </ul>
 <h3 style="margin-top:24px;">D. 学术</h3>
 <ul style="margin-left:20px;">
-<li>本日无与纳芯微产品线直接相关的增量信息（DAC/Hot Chips/ISSCC 均为会议框架页或已结束通告）。</li>
+<li><span class="tag tag-new">新</span>  ISSCC 2026 议程 | https://xplorestaging.ieee.org/xpl/conhome/11408863/proceeding</li>
+<li>主题从单纯性能转向能效架构与跨层系统协同（硅-设计-异质集成），AI推理与物理AI为主要驱动力。</li>
+</ul>
+<h3 style="margin-top:24px;">E. 标准</h3>
+<ul style="margin-left:20px;">
+<li><span class="tag tag-new">新</span>  AEC-Q100 与 ISO 26262 的证据边界 | https://semiconinside.com/aec-q100-vs-iso-26262/</li>
+<li>通过AEC-Q100可靠性认证≠满足ISO 26262功能安全要求，二者证据体系不同，车规客户会额外索要安全论证材料。</li>
+<li><span class="tag tag-new">新</span>  车规认证实务指南（AEC-Q100 Rev-J 为现行版本） | https://www.charteredsemi.com/automotive-grade-qualification-for-chips-explained/</li>
+<li>强调多批次、零失效的加速应力试验证据链；量产导入看的是批次一致性而非单批通过。</li>
+<li><span class="tag tag-new">新</span>  AEC-Q004 零缺陷框架（初始版）| http://www.aecouncil.com/AECDocuments.html</li>
+<li>从"通过认证"转向过程零缺陷管理，供应商需提供方法与工具层面的证据。</li>
+</ul>
+<h3 style="margin-top:24px;">C. GitHub（仅保留与设计流程相关项）</h3>
+<ul style="margin-left:20px;">
+<li><span class="tag tag-new">新</span>  芯片设计流程转向 Git/CI-CD 与 agentic 工作流 | https://www.synopsys.com/blogs/chip-design/chip-design-tools-github-hardware-development.html</li>
+<li>RTL、验证、集成流程开始采用 pull request 与自动化审查，AI agent 参与代码分析与规则检查。</li>
 </ul>
     </div>
 
     <div class="section">
         <h2>跨类对比分析</h2>
         <ul style="margin-left:20px;">
-<li>国际模拟/隔离大厂2026年多轮提价且幅度覆盖15%–85%，隔离器件在列 → 国产替代的价格窗口打开，纳芯微在隔离驱动、数字隔离器上的报价弹性与份额争夺空间同时扩大。</li>
-<li>涨价分批滚动至Q3–Q4，说明供给端成本压力（晶圆/封测）具有持续性 → 需提前锁定代工产能与封测价格，避免自身毛利被上游挤压。</li>
-<li>大厂同步收紧backlog与订单规则 → 客户对二供、三供的导入意愿上升，是切入汽车与工业客户料号清单的时机。</li>
+<li><b>模拟/车规料号进入多轮涨价周期</b>：海外IDM掌握定价权，国产替代的窗口在于客户重新评估BOM与二供，但前提是车规证据链完整，而非仅价格优势。</li>
+<li><b>车规门槛从"过认证"上移到"零缺陷+功能安全论证"</b>：AEC-Q100 Rev-J 与 Q004 叠加，客户审核重点转向批次一致性与过程数据，纳芯微需前置准备可追溯的质量证据包。</li>
+<li><b>设计流程工具链向 Git 化与 AI 辅助迁移</b>：验证与集成环节的效率差距会被放大，IPD 流程中的评审节点需要与自动化检查打通。</li>
 </ul>
     </div>
 
@@ -88,18 +101,18 @@
         <h2>纳芯微发展建议</h2>
         <h3 style="margin-top:24px;">P0</h3>
 <ul style="margin-left:20px;">
-<li>梳理隔离器/隔离驱动对标料号（对照TI、ADI涨价清单），输出可替换料号与报价方案，定向推送至现有汽车、工业客户 | 高</li>
-<li>与代工、封测厂锁定2027年H1产能与价格，防止成本传导滞后 | 高</li>
+<li>梳理受涨价影响最直接的车规/工业料号清单，同步准备对标料号的 AEC-Q100 Rev-J 批次一致性数据与 ISO 26262 安全论证材料 | 可行性高，现有认证资料可复用，需质量与市场联合整理。</li>
+<li>建立零缺陷过程证据包（参照 AEC-Q004 框架），用于客户二供审核 | 可行性中，需半年左右补齐过程数据与工具记录。</li>
 </ul>
 <h3 style="margin-top:24px;">P1</h3>
 <ul style="margin-left:20px;">
-<li>建立国际大厂涨价/交期跟踪表（按月更新），作为销售议价与客户导入的支撑材料 | 中</li>
-<li>针对竞品涨价幅度大的品类，评估短期促销或长单锁价策略以加速份额获取 | 中</li>
+<li>在验证与集成环节试点 Git 化流程与自动化规则检查，评估对评审周期的影响 | 可行性中，需 IT 与设计团队协同，先在单条产品线验证。</li>
+<li>跟踪海外IDM后续涨价批次与配额规则，形成交期/价格预警输入至产品规划 | 可行性高，公开渠道信息即可支撑。</li>
 </ul>
     </div>
 </div>
 <div class="footer">
-    <p>芯片IPD知识库 · 云端自动生成 · 下次更新：2026-11-19 明天 8:30</p>
+    <p>芯片IPD知识库 · 云端自动生成 · 下次更新：2026-11-20 明天 8:30</p>
 </div>
 </body>
 </html>
